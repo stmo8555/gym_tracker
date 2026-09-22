@@ -1,21 +1,20 @@
 name: gym_tracker
 
 services:
-  # app:
-  #   build: .
-  #   restart: unless-stopped
-  #   # .env holds shared credentials (also used by local `go run .`).
-  #   # environment: overrides the values that only apply inside Docker.
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - POSTGRES_HOST=db        # the `db` service name resolves on the Compose network
-  #     - POSTGRES_PORT=5432
-  #   ports:
-  #     - "127.0.0.1:8080:8080"
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
+  app:
+    build: .
+    restart: unless-stopped
+    # .env holds the shared Postgres credentials (also used by the db service below).
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST=db        # the `db` service name resolves on the Compose network
+      - POSTGRES_PORT=5432
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:18
