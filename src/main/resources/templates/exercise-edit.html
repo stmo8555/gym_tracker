@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <h1>Edit exercise</h1>
+
+  <form th:action="@{/exercises/{id}(id=${exercise.id})}" method="post">
+    <label>Name <input name="name" th:value="${exercise.name}"></label>
+    <label>Rep range lower <input type="number" name="repRangeLower" th:value="${exercise.repRangeLower}"></label>
+    <label>Rep range upper <input type="number" name="repRangeUpper" th:value="${exercise.repRangeUpper}"></label>
+    <label>Sets <input type="number" name="sets" th:value="${exercise.sets}"></label>
+    <label>Rest seconds <input type="number" name="restSeconds" th:value="${exercise.restSeconds}"></label>
+    <label>Note <input name="note" th:value="${exercise.note}"></label>
+    <select name="workoutId">
+      <option th:each="w : ${workouts}" th:value="${w.id}" th:text="${'workout ' + w.id}"
+              th:selected="${w.id == exercise.workout.id}"></option>
+    </select>
+    <button>Save</button>
+  </form>
+
+  <a href="/exercises">back</a>
+</body>
+</html>

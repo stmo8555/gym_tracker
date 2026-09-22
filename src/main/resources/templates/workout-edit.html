@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <h1>Edit workout</h1>
+
+  <form th:action="@{/workouts/{id}(id=${workout.id})}" method="post">
+    <select name="programId">
+      <option value="">-- no program --</option>
+      <option th:each="p : ${programs}" th:value="${p.id}" th:text="${p.name}"
+              th:selected="${workout.program != null and p.id == workout.program.id}"></option>
+    </select>
+    <button>Save</button>
+  </form>
+
+  <a href="/workouts">back</a>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <h1>Edit program</h1>
+
+  <form th:action="@{/programs/{id}(id=${program.id})}" method="post">
+    <label>Name <input name="name" th:value="${program.name}"></label>
+    <label><input type="checkbox" name="active" value="true" th:checked="${program.active}"> active</label>
+    <label>Day <input type="number" name="day" th:value="${program.day}"></label>
+    <label>Rotation pos <input type="number" name="rotationPos" th:value="${program.rotationPos}"></label>
+    <label>Rotations <input type="number" name="rotations" th:value="${program.rotations}"></label>
+    <label>Deload interval <input type="number" name="deloadInterval" th:value="${program.deloadInterval}"></label>
+    <button>Save</button>
+  </form>
+
+  <a href="/programs">back</a>
+</body>
+</html>
