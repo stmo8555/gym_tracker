@@ -47,7 +47,8 @@ public class ProgramController {
         program.setDay(day);
         program.setRotationPos(rotationPos);
         program.setRotations(rotations);
-        program.setDeloadInterval((deloadInterval == null || deloadInterval.isBlank()) ? null : Integer.valueOf(deloadInterval));
+        program.setDeloadInterval(
+                (deloadInterval == null || deloadInterval.isBlank()) ? null : Integer.valueOf(deloadInterval));
         repo.save(program);
         return "redirect:/programs";
     }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Edit program')}"></head>
 <body>
   <h1>Edit program</h1>
 
@@ -7,7 +8,7 @@
     <label>Name <input name="name" th:value="${program.name}"></label>
     <label><input type="checkbox" name="active" value="true" th:checked="${program.active}"> active</label>
     <label>Day <input type="number" name="day" th:value="${program.day}"></label>
-    <label>Rotation pos <input type="number" name="rotationPos" th:value="${program.rotationPos}"></label>
+    <span th:text="'Rot ' + ${program.rotationPos}"></span>
     <label>Rotations <input type="number" name="rotations" th:value="${program.rotations}"></label>
     <label>Deload interval <input type="number" name="deloadInterval" th:value="${program.deloadInterval}"></label>
     <button>Save</button>

@@ -7,3 +7,4 @@ bin/
 .settings/
 Session.vim
 Session_arena.json
+/.factorypath

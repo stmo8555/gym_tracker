@@ -1,24 +1,31 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head('Workouts')}"></head>
+
 <body>
-  <h1>Workouts</h1>
+    <h1>Workouts</h1>
 
-  <form method="post" action="/workouts">
-    <select name="programId">
-      <option value="">-- no program --</option>
-      <option th:each="p : ${programs}" th:value="${p.id}" th:text="${p.name}"></option>
-    </select>
-    <button>Add</button>
-  </form>
+    <form method="post" action="/workouts">
+        <select name="programId">
+            <option value="">-- no program --</option>
+            <option th:each="p : ${programs}" th:value="${p.id}" th:text="${p.name}"></option>
+        </select>
+        <label for="name-input">Name: </label>
+        <input id="name-input" type="text" name="name">
+        <button>Add</button>
+    </form>
 
-  <ul>
-    <li th:each="w : ${workouts}">
-      <span th:text="${w.program != null ? w.program.name : '(no program)'}"></span>
-      <a th:href="@{/workouts/{id}/edit(id=${w.id})}">edit</a>
-      <form th:action="@{/workouts/{id}/delete(id=${w.id})}" method="post" style="display:inline">
-        <button>delete</button>
-      </form>
-    </li>
-  </ul>
+    <ul>
+        <li th:each="w : ${workouts}">
+            <span th:text="'Name: ' + ${w.name}">Workout name</span>
+            <span th:text="${w.program != null ? w.program.name : '(no program)'}"></span>
+            <a th:href="@{/workouts/{id}/edit(id=${w.id})}">edit</a>
+            <form th:action="@{/workouts/{id}/delete(id=${w.id})}" method="post" style="display:inline">
+                <button>delete</button>
+            </form>
+        </li>
+    </ul>
 </body>
+
 </html>

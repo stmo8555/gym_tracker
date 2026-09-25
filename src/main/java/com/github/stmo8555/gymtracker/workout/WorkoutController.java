@@ -30,9 +30,9 @@ public class WorkoutController {
     }
 
     @PostMapping
-    public String create(@RequestParam(required = false) String programId) {
+    public String create(@RequestParam() String name, @RequestParam(required = false) String programId) {
         Program program = parseId(programId) != null ? programRepo.getReferenceById(parseId(programId)) : null;
-        repo.save(new Workout(mockUser.get(), program));
+        repo.save(new Workout(name, mockUser.get(), program));
         return "redirect:/workouts";
     }
 

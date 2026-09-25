@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Programs')}"></head>
 <body>
   <h1>Programs</h1>
+  <h2>Hot Reload</h2>
 
   <form method="post" action="/programs">
     <input name="name" placeholder="name">
