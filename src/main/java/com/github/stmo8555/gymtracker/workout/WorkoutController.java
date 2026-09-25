@@ -4,8 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import com.github.stmo8555.gymtracker.program.Program;
-import com.github.stmo8555.gymtracker.program.ProgramRepository;
+import com.github.stmo8555.gymtracker.exercise.*;
 import com.github.stmo8555.gymtracker.user.MockUserProvider;
 
 @Controller
@@ -13,40 +12,78 @@ import com.github.stmo8555.gymtracker.user.MockUserProvider;
 public class WorkoutController {
 
     private final WorkoutRepository repo;
-    private final ProgramRepository programRepo;
+    private final ExerciseRepository exerciseRepo;
     private final MockUserProvider mockUser;
 
-    public WorkoutController(WorkoutRepository repo, ProgramRepository programRepo, MockUserProvider mockUser) {
+    public WorkoutController(WorkoutRepository repo, ExerciseRepository exerciseRepo, MockUserProvider mockUser) {
         this.repo = repo;
-        this.programRepo = programRepo;
+        this.exerciseRepo = exerciseRepo;
         this.mockUser = mockUser;
     }
 
     @GetMapping
     public String list(Model model) {
         model.addAttribute("workouts", repo.findAll());
-        model.addAttribute("programs", programRepo.findAll());
+        model.addAttribute("programs", exerciseRepo.findAll());
         return "workouts";
     }
 
     @PostMapping
     public String create(@RequestParam() String name, @RequestParam(required = false) String programId) {
-        Program program = parseId(programId) != null ? programRepo.getReferenceById(parseId(programId)) : null;
-        repo.save(new Workout(name, mockUser.get(), program));
+        repo.save(new Workout(name, mockUser.get()));
         return "redirect:/workouts";
     }
 
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Integer id, Model model) {
         model.addAttribute("workout", repo.findById(id).orElseThrow());
-        model.addAttribute("programs", programRepo.findAll());
+        model.addAttribute("programs", exerciseRepo.findAll());
         return "workout-edit";
     }
 
-    @PostMapping("/{id}")
-    public String update(@PathVariable Integer id, @RequestParam(required = false) String programId) {
+    @PostMapping("/{id}/exercises")
+    public String addExercise(@PathVariable Integer id, @RequestParam String name, @RequestParam Integer repRangeLower,
+            @RequestParam Integer repRangeUpper, @RequestParam Integer sets,
+            @RequestParam(defaultValue = "0") Integer restSeconds, @RequestParam(required = false) String note) {
+        Workout workout = repo.getReferenceById(id);
+        exerciseRepo.save(new Exercise(name, repRangeLower, repRangeUpper, sets, restSeconds, note, workout));
+        return "redirect:/workouts/" + id + "/edit";
+    }
+
+    @GetMapping("/{wid}/exercises/{id}/edit")
+    public String editExcersice(@PathVariable Integer wid, @PathVariable Integer id, Model model) {
+        model.addAttribute("workout", repo.findById(wid).orElseThrow());
+        model.addAttribute("exercise", exerciseRepo.findById(id).orElseThrow());
+        return "exercise-edit";
+    }
+
+    @PostMapping("/{wid}/exercises/{id}/delete")
+    public String delete(@PathVariable Integer wid, @PathVariable Integer id) {
+        exerciseRepo.deleteById(id);
+        return "redirect:/workouts/" + wid + "/edit";
+    }
+
+    @PostMapping("/{wid}/exercises/{id}")
+    public String updateExcersise(@PathVariable Integer wid, @PathVariable Integer id, @RequestParam String name,
+            @RequestParam Integer repRangeLower,
+            @RequestParam Integer repRangeUpper, @RequestParam Integer sets,
+            @RequestParam(defaultValue = "0") Integer restSeconds, @RequestParam(required = false) String note) {
+        Exercise exercise = exerciseRepo.findById(id).orElseThrow();
+        exercise.setName(name);
+        exercise.setRepRangeLower(repRangeLower);
+        exercise.setRepRangeUpper(repRangeUpper);
+        exercise.setSets(sets);
+        exercise.setRestSeconds(restSeconds);
+        exercise.setNote(note);
+        exercise.setWorkout(repo.getReferenceById(wid));
+        exerciseRepo.save(exercise);
+        return "redirect:/workouts/" + wid + "/edit";
+    }
+
+    @PostMapping("/{id}/edit")
+    public String update(@PathVariable Integer id, @RequestParam String name) {
         Workout workout = repo.findById(id).orElseThrow();
-        workout.setProgram(parseId(programId) != null ? programRepo.getReferenceById(parseId(programId)) : null);
+        workout.setName(name);
         repo.save(workout);
         return "redirect:/workouts";
     }

@@ -29,25 +29,14 @@ public class Workout {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "program_id", nullable = true)
-    private Program program;
-
     @OneToMany(mappedBy = "workout", fetch = FetchType.LAZY)
     private List<Exercise> exercises = new ArrayList<>();
 
     protected Workout() {
     } // JPA needs a no-arg constructor
 
-    public Workout(String name, User user, Program program) {
-        this.name = name;
-        this.user = user;
-        this.program = program;
-    }
-
     public Workout(String name, User user) {
         this.name = name;
         this.user = user;
-        this.program = null;
     }
 }

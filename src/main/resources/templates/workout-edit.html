@@ -4,37 +4,37 @@
 <head th:replace="~{fragments/head :: head('Edit workout')}"></head>
 
 <body>
-    <h1>Edit workout</h1>
+    <h1>Edit workout: <span th:text=${workout.name}></span></h1>
 
-    <form th:action="@{/workouts/{id}(id=${workout.id})}" method="post">
-        <select name="programId">
-            <option value="">-- no program --</option>
-            <option th:each="p : ${programs}" th:value="${p.id}" th:text="${p.name}"
-                th:selected="${workout.program != null and p.id == workout.program.id}"></option>
-        </select>
-        <button>Save</button>
+    <h2>Name</h2>
+
+    <form method="post" th:action="@{/workouts/{id}/edit(id=${workout.id})}">
+        <input name="name" th:value="${workout.name}" required>
+        <button>Rename</button>
     </form>
 
+    <h2>Exercises</h2>
+    <p th:if="${workout.exercises.isEmpty()}">No exercises yet</p>
     <ul>
         <li th:each="e : ${workout.exercises}">
             <span th:text="${e.name}"></span>
-            (<span th:text="${e.sets}"></span> sets, <span th:text="${e.repRangeLower + '-' + e.repRangeUpper}"></span>
+                (<span th:text="${e.sets}"></span> sets, <span th:text="${e.repRangeLower + '-' + e.repRangeUpper}"></span>
             reps)
-            <a th:href="@{/exercises/{id}/edit(id=${e.id})}">edit</a>
-            <form th:action="@{/exercises/{id}/delete(id=${e.id})}" method="post" style="display:inline">
+            <a th:href="@{/workouts/{wid}/exercises/{id}/edit(wid=${workout.id}, id=${e.id})}">edit</a>
+            <form th:action="@{/workouts/{wid}/exercises/{id}/delete(wid=${workout.id}, id=${e.id})}" method="post" style="display:inline">
                 <button>delete</button>
             </form>
         </li>
     </ul>
-    
-    <form method="post" action="/exercises">
+
+    <h2>Add Exercise</h2>
+    <form method="post" th:action="@{/workouts/{id}/exercises(id=${workout.id})}">
         <input name="name" placeholder="name">
         <input type="number" name="repRangeLower" placeholder="rep range lower">
         <input type="number" name="repRangeUpper" placeholder="rep range upper">
         <input type="number" name="sets" placeholder="sets">
         <input type="number" name="restSeconds" placeholder="rest seconds" value="0">
         <input name="note" placeholder="note (optional)">
-        <input type="hidden" name="workoutId" th:value="${workout.id}">
         <button>Add</button>
     </form>
 
