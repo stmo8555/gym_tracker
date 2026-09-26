@@ -14,9 +14,9 @@
     </form>
 
     <h2>Exercises</h2>
-    <p th:if="${workout.exercises.isEmpty()}">No exercises yet</p>
+    <p th:if="${exercises.isEmpty()}">No exercises yet</p>
     <ul>
-        <li th:each="e : ${workout.exercises}">
+        <li th:each="e : ${exercises}">
             <span th:text="${e.name}"></span>
                 (<span th:text="${e.sets}"></span> sets, <span th:text="${e.repRangeLower + '-' + e.repRangeUpper}"></span>
             reps)

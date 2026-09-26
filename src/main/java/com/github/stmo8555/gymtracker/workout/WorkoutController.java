@@ -24,12 +24,11 @@ public class WorkoutController {
     @GetMapping
     public String list(Model model) {
         model.addAttribute("workouts", repo.findAll());
-        model.addAttribute("programs", exerciseRepo.findAll());
         return "workouts";
     }
 
     @PostMapping
-    public String create(@RequestParam() String name, @RequestParam(required = false) String programId) {
+    public String create(@RequestParam() String name) {
         repo.save(new Workout(name, mockUser.get()));
         return "redirect:/workouts";
     }
@@ -37,7 +36,7 @@ public class WorkoutController {
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Integer id, Model model) {
         model.addAttribute("workout", repo.findById(id).orElseThrow());
-        model.addAttribute("programs", exerciseRepo.findAll());
+        model.addAttribute("exercises", exerciseRepo.findByWorkoutId(id));
         return "workout-edit";
     }
 

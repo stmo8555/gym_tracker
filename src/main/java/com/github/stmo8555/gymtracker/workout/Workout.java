@@ -6,12 +6,6 @@ import lombok.Setter;
 
 import com.github.stmo8555.gymtracker.user.User;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.github.stmo8555.gymtracker.exercise.Exercise;
-import com.github.stmo8555.gymtracker.program.Program;
-
 @Entity
 @Table(name = "workouts")
 @Getter
@@ -28,9 +22,6 @@ public class Workout {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @OneToMany(mappedBy = "workout", fetch = FetchType.LAZY)
-    private List<Exercise> exercises = new ArrayList<>();
 
     protected Workout() {
     } // JPA needs a no-arg constructor

@@ -4,18 +4,25 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import com.github.stmo8555.gymtracker.workout.*;
 import com.github.stmo8555.gymtracker.user.MockUserProvider;
+import com.github.stmo8555.gymtracker.programday.*;
 
 @Controller
 @RequestMapping("/programs")
 public class ProgramController {
 
+    private final WorkoutRepository workoutRepository;
     private final ProgramRepository repo;
+    private final ProgramDayRepository programDayRepository;
     private final MockUserProvider mockUser;
 
-    public ProgramController(ProgramRepository repo, MockUserProvider mockUser) {
+    public ProgramController(ProgramRepository repo, MockUserProvider mockUser,
+            ProgramDayRepository programDayRepository, WorkoutRepository workoutRepository) {
         this.repo = repo;
+        this.programDayRepository = programDayRepository;
         this.mockUser = mockUser;
+        this.workoutRepository = workoutRepository;
     }
 
     @GetMapping
@@ -33,7 +40,46 @@ public class ProgramController {
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Integer id, Model model) {
         model.addAttribute("program", repo.findById(id).orElseThrow());
+        model.addAttribute("programDays", programDayRepository.findByProgramId(id));
+        model.addAttribute("workouts", workoutRepository.findAll());
         return "program-edit";
+    }
+
+    @PostMapping("/{id}/program-days")
+    public String createProgramDays(@PathVariable Integer id, @RequestParam Integer dayOrder,
+            @RequestParam(required = false) String workoutId) {
+        // getReferenceById gives a lazy proxy for the FK without a real SELECT -
+        // fine here since we only need it to set the relation, not read its fields.
+        Program program = repo.getReferenceById(id);
+        Workout workout = parseId(workoutId) != null ? workoutRepository.getReferenceById(parseId(workoutId)) : null;
+        programDayRepository.save(new ProgramDay(program, dayOrder, workout));
+        // redirect (not just returning a view) so refreshing the result page
+        // doesn't resubmit the form - the Post/Redirect/Get pattern.
+        return "redirect:/programs/" + id + "/edit";
+    }
+
+    @GetMapping("/{pid}/program-days/{id}/edit")
+    public String editProgramDay(@PathVariable Integer pid, @PathVariable Integer id, Model model) {
+        model.addAttribute("program", repo.findById(pid).orElseThrow());
+        model.addAttribute("programDay", programDayRepository.findById(id).orElseThrow());
+        model.addAttribute("workouts", workoutRepository.findAll());
+        return "program-day-edit";
+    }
+
+    @PostMapping("/{pid}/program-days/{id}")
+    public String updateProgramDay(@PathVariable Integer pid, @PathVariable Integer id, @RequestParam Integer dayOrder,
+            @RequestParam(required = false) String workoutId) {
+        ProgramDay programDay = programDayRepository.findById(id).orElseThrow();
+        programDay.setDayOrder(dayOrder);
+        programDay.setWorkout(parseId(workoutId) != null ? workoutRepository.getReferenceById(parseId(workoutId)) : null);
+        programDayRepository.save(programDay);
+        return "redirect:/programs/" + pid + "/edit";
+    }
+
+    @PostMapping("/{pid}/program-days/{id}/delete")
+    public String deleteProgramDay(@PathVariable Integer pid, @PathVariable Integer id) {
+        programDayRepository.deleteById(id);
+        return "redirect:/programs/" + pid + "/edit";
     }
 
     @PostMapping("/{id}")
@@ -57,5 +103,9 @@ public class ProgramController {
     public String delete(@PathVariable Integer id) {
         repo.deleteById(id);
         return "redirect:/programs";
+    }
+
+    private static Integer parseId(String value) {
+        return (value == null || value.isBlank()) ? null : Integer.valueOf(value);
     }
 }

@@ -1,23 +1,22 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/head :: head('Edit program day')}"></head>
+
 <body>
-  <h1>Edit program day</h1>
+    <h1>Edit program day</h1>
 
-  <form th:action="@{/program-days/{id}(id=${programDay.id})}" method="post">
-    <select name="programId">
-      <option th:each="p : ${programs}" th:value="${p.id}" th:text="${p.name}"
-              th:selected="${p.id == programDay.program.id}"></option>
-    </select>
-    <label>Day order <input type="number" name="dayOrder" th:value="${programDay.dayOrder}"></label>
-    <select name="workoutId">
-      <option value="">-- no workout --</option>
-      <option th:each="w : ${workouts}" th:value="${w.id}" th:text="${'workout ' + w.id}"
-              th:selected="${programDay.workout != null and w.id == programDay.workout.id}"></option>
-    </select>
-    <button>Save</button>
-  </form>
+    <form th:action="@{/programs/{pid}/program-days/{id}(pid=${program.id}, id=${programDay.id})}" method="post">
+        <label>Day order <input type="number" name="dayOrder" th:value="${programDay.dayOrder}"></label>
+        <select name="workoutId">
+            <option value="">-- no workout --</option>
+            <option th:each="w : ${workouts}" th:value="${w.id}" th:text="${'workout ' + w.name}"
+                th:selected="${programDay.workout != null and w.id == programDay.workout.id}"></option>
+        </select>
+        <button>Save</button>
+    </form>
 
-  <a href="/program-days">back</a>
+    <a th:href="@{/programs/{id}/edit(id=${program.id})}">back</a>
 </body>
+
 </html>
