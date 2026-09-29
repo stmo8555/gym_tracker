@@ -1,8 +1,11 @@
 package com.github.stmo8555.gymtracker.program;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.github.stmo8555.gymtracker.workout.*;
 import com.github.stmo8555.gymtracker.user.MockUserProvider;
@@ -27,7 +30,7 @@ public class ProgramController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("programs", repo.findAll());
+        model.addAttribute("programs", repo.findByUserId(mockUser.get().getId()));
         return "programs";
     }
 
@@ -39,73 +42,112 @@ public class ProgramController {
 
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Integer id, Model model) {
-        model.addAttribute("program", repo.findById(id).orElseThrow());
+        model.addAttribute("program", findOwnedProgram(id));
         model.addAttribute("programDays", programDayRepository.findByProgramId(id));
         model.addAttribute("workouts", workoutRepository.findAll());
         return "program-edit";
     }
 
     @PostMapping("/{id}/program-days")
-    public String createProgramDays(@PathVariable Integer id, @RequestParam Integer dayOrder,
-            @RequestParam(required = false) String workoutId) {
-        // getReferenceById gives a lazy proxy for the FK without a real SELECT -
-        // fine here since we only need it to set the relation, not read its fields.
-        Program program = repo.getReferenceById(id);
-        Workout workout = parseId(workoutId) != null ? workoutRepository.getReferenceById(parseId(workoutId)) : null;
-        programDayRepository.save(new ProgramDay(program, dayOrder, workout));
-        // redirect (not just returning a view) so refreshing the result page
-        // doesn't resubmit the form - the Post/Redirect/Get pattern.
+    public String createProgramDays(@PathVariable Integer id, @RequestParam(required = false) Integer workoutId) {
+        var dayCount = programDayRepository.countByProgramId(id);
+        Program program = findOwnedProgram(id);
+        Workout workout = workoutId != null ? workoutRepository.getReferenceById(workoutId) : null;
+        programDayRepository.save(new ProgramDay(program, dayCount, workout));
         return "redirect:/programs/" + id + "/edit";
     }
 
     @GetMapping("/{pid}/program-days/{id}/edit")
     public String editProgramDay(@PathVariable Integer pid, @PathVariable Integer id, Model model) {
-        model.addAttribute("program", repo.findById(pid).orElseThrow());
-        model.addAttribute("programDay", programDayRepository.findById(id).orElseThrow());
+        model.addAttribute("program", findOwnedProgram(pid));
+        model.addAttribute("programDay", findProgramDay(pid, id));
         model.addAttribute("workouts", workoutRepository.findAll());
         return "program-day-edit";
     }
 
     @PostMapping("/{pid}/program-days/{id}")
-    public String updateProgramDay(@PathVariable Integer pid, @PathVariable Integer id, @RequestParam Integer dayOrder,
-            @RequestParam(required = false) String workoutId) {
-        ProgramDay programDay = programDayRepository.findById(id).orElseThrow();
-        programDay.setDayOrder(dayOrder);
-        programDay.setWorkout(parseId(workoutId) != null ? workoutRepository.getReferenceById(parseId(workoutId)) : null);
+    public String updateProgramDay(@PathVariable Integer pid, @PathVariable Integer id,
+            @RequestParam(required = false) Integer workoutId) {
+        findOwnedProgram(pid);
+        ProgramDay programDay = findProgramDay(pid, id);
+        programDay.setWorkout(workoutId != null ? workoutRepository.getReferenceById(workoutId) : null);
         programDayRepository.save(programDay);
         return "redirect:/programs/" + pid + "/edit";
     }
 
     @PostMapping("/{pid}/program-days/{id}/delete")
     public String deleteProgramDay(@PathVariable Integer pid, @PathVariable Integer id) {
-        programDayRepository.deleteById(id);
+        findOwnedProgram(pid);
+        programDayRepository.delete(findProgramDay(pid, id));
+        programDayRepository.flush();
+
+        var programDays = programDayRepository.findByProgramIdOrderByDayOrderAsc(mockUser.get().getId());
+        for (int i = 0; i < programDays.size(); i++) {
+            programDays.get(i).setDayOrder(i);
+        }
+          
+        programDayRepository.saveAll(programDays);
         return "redirect:/programs/" + pid + "/edit";
     }
 
     @PostMapping("/{id}")
     public String update(@PathVariable Integer id, @RequestParam String name,
-            @RequestParam(defaultValue = "false") boolean active, @RequestParam Integer day,
-            @RequestParam Integer rotationPos, @RequestParam Integer rotations,
-            @RequestParam(required = false) String deloadInterval) {
-        Program program = repo.findById(id).orElseThrow();
+            @RequestParam Integer day, @RequestParam Integer rotationPos,
+            @RequestParam(required = false) Integer rotations, @RequestParam(required = false) Integer deloadInterval) {
+        Program program = findOwnedProgram(id);
         program.setName(name);
-        program.setActive(active);
         program.setDay(day);
         program.setRotationPos(rotationPos);
         program.setRotations(rotations);
-        program.setDeloadInterval(
-                (deloadInterval == null || deloadInterval.isBlank()) ? null : Integer.valueOf(deloadInterval));
+        program.setDeloadInterval(deloadInterval);
         repo.save(program);
         return "redirect:/programs";
     }
 
-    @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Integer id) {
-        repo.deleteById(id);
+    @Transactional
+    @PostMapping("/{id}/activate")
+    public String activate(@PathVariable Integer id) {
+        Program program = findOwnedProgram(id);
+
+        repo.findByUserIdAndActiveTrue(mockUser.get().getId()).ifPresent(current -> {
+            current.setActive(false);
+            repo.flush();
+        });
+
+        program.setActive(true);
         return "redirect:/programs";
     }
 
-    private static Integer parseId(String value) {
-        return (value == null || value.isBlank()) ? null : Integer.valueOf(value);
+    @Transactional
+    @PostMapping("/{id}/program-days/workout")
+    public String addProgramAndCreateWorkout(@PathVariable Integer id,
+            @RequestParam String workoutName) {
+        var program = findOwnedProgram(id);
+        var dayCount = programDayRepository.countByProgramId(id);
+
+        var workout = workoutRepository.save(new Workout(workoutName, mockUser.get()));
+        programDayRepository.save(new ProgramDay(program, dayCount + 1, workout));
+
+        return "redirect:/workouts/" + workout.getId() + "/edit";
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(@PathVariable Integer id) {
+        repo.delete(findOwnedProgram(id));
+        return "redirect:/programs";
+    }
+
+    // 404 (not 403) for other users' programs, so ids of programs you don't own
+    // aren't distinguishable from ones that don't exist.
+    private Program findOwnedProgram(Integer id) {
+        return repo.findByIdAndUserId(id, mockUser.get().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    // checks the day actually belongs to the program in the URL; call
+    // findOwnedProgram(pid) first so ownership of the program is checked too.
+    private ProgramDay findProgramDay(Integer pid, Integer id) {
+        return programDayRepository.findByIdAndProgramId(id, pid)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 }

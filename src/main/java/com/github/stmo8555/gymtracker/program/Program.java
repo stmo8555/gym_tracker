@@ -28,8 +28,9 @@ public class Program {
     @Column(columnDefinition = "INT DEFAULT 1")
     private Integer rotationPos = 1;
 
-    @Column(nullable = false, columnDefinition = "INT DEFAULT 999999999")
-    private Integer rotations = 999999999;
+    // null = no rotation limit, the program repeats indefinitely
+    @Column(nullable = true)
+    private Integer rotations;
 
     @Column(nullable = true)
     private Integer deloadInterval;

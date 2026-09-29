@@ -5,6 +5,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import com.github.stmo8555.gymtracker.exercise.*;
+import com.github.stmo8555.gymtracker.programday.ProgramDay;
+import com.github.stmo8555.gymtracker.programday.ProgramDayRepository;
 import com.github.stmo8555.gymtracker.user.MockUserProvider;
 
 @Controller
@@ -13,11 +15,14 @@ public class WorkoutController {
 
     private final WorkoutRepository repo;
     private final ExerciseRepository exerciseRepo;
+    private final ProgramDayRepository programDayRepo;
     private final MockUserProvider mockUser;
 
-    public WorkoutController(WorkoutRepository repo, ExerciseRepository exerciseRepo, MockUserProvider mockUser) {
+    public WorkoutController(WorkoutRepository repo, ExerciseRepository exerciseRepo,
+            ProgramDayRepository programDayRepo, MockUserProvider mockUser) {
         this.repo = repo;
         this.exerciseRepo = exerciseRepo;
+        this.programDayRepo = programDayRepo;
         this.mockUser = mockUser;
     }
 
@@ -37,6 +42,13 @@ public class WorkoutController {
     public String edit(@PathVariable Integer id, Model model) {
         model.addAttribute("workout", repo.findById(id).orElseThrow());
         model.addAttribute("exercises", exerciseRepo.findByWorkoutId(id));
+        // programs using this workout, for the "used in" links. distinct() is safe
+        // on entities here: within one persistence context each program id maps
+        // to a single instance.
+        model.addAttribute("programs", programDayRepo.findByWorkoutId(id).stream()
+                .map(ProgramDay::getProgram)
+                .distinct()
+                .toList());
         return "workout-edit";
     }
 
@@ -91,9 +103,5 @@ public class WorkoutController {
     public String delete(@PathVariable Integer id) {
         repo.deleteById(id);
         return "redirect:/workouts";
-    }
-
-    private static Integer parseId(String value) {
-        return (value == null || value.isBlank()) ? null : Integer.valueOf(value);
     }
 }
