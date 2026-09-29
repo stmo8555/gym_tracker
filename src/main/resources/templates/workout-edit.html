@@ -6,6 +6,12 @@
 <body>
     <h1>Edit workout: <span th:text=${workout.name}></span></h1>
 
+    <p th:unless="${programs.isEmpty()}">Used in:
+        <th:block th:each="p, stat : ${programs}">
+            <a th:href="@{/programs/{id}/edit(id=${p.id})}" th:text="${p.name}"></a><span th:unless="${stat.last}">, </span>
+        </th:block>
+    </p>
+
     <h2>Name</h2>
 
     <form method="post" th:action="@{/workouts/{id}/edit(id=${workout.id})}">
@@ -18,10 +24,11 @@
     <ul>
         <li th:each="e : ${exercises}">
             <span th:text="${e.name}"></span>
-                (<span th:text="${e.sets}"></span> sets, <span th:text="${e.repRangeLower + '-' + e.repRangeUpper}"></span>
+            (<span th:text="${e.sets}"></span> sets, <span th:text="${e.repRangeLower + '-' + e.repRangeUpper}"></span>
             reps)
             <a th:href="@{/workouts/{wid}/exercises/{id}/edit(wid=${workout.id}, id=${e.id})}">edit</a>
-            <form th:action="@{/workouts/{wid}/exercises/{id}/delete(wid=${workout.id}, id=${e.id})}" method="post" style="display:inline">
+            <form th:action="@{/workouts/{wid}/exercises/{id}/delete(wid=${workout.id}, id=${e.id})}" method="post"
+                style="display:inline">
                 <button>delete</button>
             </form>
         </li>
