@@ -7,24 +7,27 @@
     <h1>Edit program: <span th:text="${program.name}"></span></h1>
 
     <h2>Program settings</h2>
+    <span th:text="|Rotation ${program.rotationPos}|"></span>
+
     <form th:action="@{/programs/{id}(id=${program.id})}" method="post">
+        <input type="hidden" name="rotationPos" th:value="${program.rotationPos}">
         <label>Name <input name="name" th:value="${program.name}"></label>
-        <label><input type="checkbox" name="active" value="true" th:checked="${program.active}"> active</label>
         <label>Day <input type="number" name="day" th:value="${program.day}"></label>
-        <span th:text="'Rot ' + ${program.rotationPos}"></span>
-        <label>Rotations <input type="number" name="rotations" th:value="${program.rotations}"></label>
+        <label>Rotations <input type="number" name="rotations" th:value="${program.rotations}"
+                placeholder="unlimited"></label>
         <label>Deload interval <input type="number" name="deloadInterval" th:value="${program.deloadInterval}"></label>
-        <button>Save</button>
+        <button type="submit">Save</button>
     </form>
 
     <h2>Days</h2>
 
     <ul>
         <li th:each="d : ${programDays}">
-            day <span th:text="${d.dayOrder}"></span>
-            <span th:text="${d.workout != null ? 'workout ' + d.workout.name : '(no workout)'}"></span>
+            day <span th:text="${d.dayOrder + 1}"></span>
+            <span th:text="${d.workout != null ? d.workout.name : 'Rest'}"></span>
             <a th:href="@{/programs/{pid}/program-days/{id}/edit(pid=${program.id}, id=${d.id})}">edit</a>
-            <form th:action="@{/programs/{pid}/program-days/{id}/delete(pid=${program.id}, id=${d.id})}" method="post" style="display:inline">
+            <form th:action="@{/programs/{pid}/program-days/{id}/delete(pid=${program.id}, id=${d.id})}" method="post"
+                style="display:inline">
                 <button>delete</button>
             </form>
         </li>
@@ -33,15 +36,17 @@
     <h2>Add Day</h2>
 
     <form method="post" th:action="@{/programs/{id}/program-days(id=${program.id})}">
-        <!-- <select name="programId"> -->
-        <!--     <option th:each="p : ${programs}" th:value="${p.id}" th:text="${p.name}"></option> -->
-        <!-- </select> -->
-        <input type="number" name="dayOrder" placeholder="day order">
+        <span>Day [[${programDays.size() + 1}]]</span>
         <select name="workoutId">
-            <option value="">-- no workout --</option>
-            <option th:each="w : ${workouts}" th:value="${w.id}" th:text="${'workout ' + w.name}"></option>
+            <option value="">Rest</option>
+            <option th:each="w : ${workouts}" th:value="${w.id}" th:text="${w.name}"></option>
         </select>
         <button>Add</button>
+    </form>
+
+    <form method="post" th:action="@{/programs/{id}/program-days/workout(id=${program.id})}">
+        <input type="text" name="workoutName">
+        <button type="submit">Add and create workout</button>
     </form>
 
 

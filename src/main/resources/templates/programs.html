@@ -1,23 +1,32 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/head :: head('Programs')}"></head>
+
 <body>
-  <h1>Programs</h1>
-  <h2>Hot Reload</h2>
+    <header th:replace="~{fragments/header :: header}"></header>
+    <h1>Programs</h1>
+    <h2>Hot Reload</h2>
 
-  <form method="post" action="/programs">
-    <input name="name" placeholder="name">
-    <button>Add</button>
-  </form>
+    <form method="post" action="/programs">
+        <input name="name" placeholder="name">
+        <button>Add</button>
+    </form>
 
-  <ul>
-    <li th:each="p : ${programs}">
-      <span th:text="${p.name}"></span>
-      <a th:href="@{/programs/{id}/edit(id=${p.id})}">edit</a>
-      <form th:action="@{/programs/{id}/delete(id=${p.id})}" method="post" style="display:inline">
-        <button>delete</button>
-      </form>
-    </li>
-  </ul>
+    <ul>
+        <li th:each="p : ${programs}">
+            <span th:text="${p.name}"></span>
+            <a th:href="@{/programs/{id}/edit(id=${p.id})}">edit</a>
+            <form th:action="@{/programs/{id}/delete(id=${p.id})}" method="post">
+                <button>delete</button>
+            </form>
+            <span th:if="${p.active}">active</span>
+            <form th:unless="${p.active}" th:action="@{/programs/{id}/activate(id=${p.id})}" method="post">
+                <button>activate</button>
+            </form>
+
+        </li>
+    </ul>
 </body>
+
 </html>
