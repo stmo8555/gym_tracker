@@ -120,13 +120,13 @@ public class ProgramController {
 
     @Transactional
     @PostMapping("/{id}/program-days/workout")
-    public String addProgramAndCreateWorkout(@PathVariable Integer id,
+    public String addProgramDayAndCreateWorkout(@PathVariable Integer id,
             @RequestParam String workoutName) {
         var program = findOwnedProgram(id);
         var dayCount = programDayRepository.countByProgramId(id);
 
         var workout = workoutRepository.save(new Workout(workoutName, mockUser.get()));
-        programDayRepository.save(new ProgramDay(program, dayCount + 1, workout));
+        programDayRepository.save(new ProgramDay(program, dayCount, workout));
 
         return "redirect:/workouts/" + workout.getId() + "/edit";
     }

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head('home')}"></head>
+
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+    <h1>Home</h1>
+
+    <h2>Todays workout:</h2>
+    <span th:text="${workout != null ? workout.name : 'Rest'}"></span>
+    
+</body>
+
+</html>

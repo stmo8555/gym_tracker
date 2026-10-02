@@ -22,11 +22,11 @@ public class Program {
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean active = false;
 
-    @Column(nullable = false, columnDefinition = "INT DEFAULT 1")
-    private Integer day = 1;
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer day = 0;
 
-    @Column(columnDefinition = "INT DEFAULT 1")
-    private Integer rotationPos = 1;
+    @Column(columnDefinition = "INT DEFAULT 0")
+    private Integer rotationPos = 0;
 
     // null = no rotation limit, the program repeats indefinitely
     @Column(nullable = true)
