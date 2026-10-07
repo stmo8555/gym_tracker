@@ -4,7 +4,7 @@
 <head th:replace="~{fragments/head :: head('Edit program day')}"></head>
 
 <body>
-    <h1>Edit day [[${programDay.dayOrder}]]</h1>
+    <h1>Edit day [[${programDay.dayOrder + 1}]]</h1>
 
     <form th:action="@{/programs/{pid}/program-days/{id}(pid=${program.id}, id=${programDay.id})}" method="post">
         <select name="workoutId">

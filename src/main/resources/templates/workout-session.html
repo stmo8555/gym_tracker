@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head('workout-session')}"></head>
+
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+    <h1>Workout session</h1>
+
+    <h2>Day <span th:text="${workoutSession.dayOrder + 1}"></span></h2>
+    <small th:text="|Started at ${#temporals.format(workoutSession.startedAt, 'HH:mm', 'Europe/Stockholm')}|"></small>
+    <th:block th:each="entry : ${setsByExercise}" th:with="ex=${entry.value[0].exercise}">
+        <h3 th:text="${entry.key}"></h3>
+        <!--/* ex is null if the exercise was deleted after the session started */-->
+        <small th:if="${ex != null}">Target reps [[${ex.repRangeLabel}]]</small>
+
+        <th:block th:each="s : ${entry.value}">
+            <form method="post" th:action="@{/workoutSession/{sessionId}/set/{id}(sessionId=${workoutSession.id}, id=${s.id})}">
+                <p>
+                    Set [[${s.setNumber + 1}]]:
+                    <label><input type="number" name="reps" th:value="${s.reps}" min="0" inputmode="numeric"
+                            th:placeholder="${ex?.repRangeLabel}"> reps</label>
+                    <label><input type="number" name="weight" th:value="${s.weight}" min="0" step="any" inputmode="decimal"> kg</label>
+                </p>
+                <input onchange="this.form.submit()" type="checkbox" name="finished" value="true"
+                    th:checked="${s.finishedAt != null}">
+            </form>
+        </th:block>
+
+    </th:block>
+</body>
+
+</html>

@@ -8,8 +8,15 @@
     <h1>Home</h1>
 
     <h2>Todays workout:</h2>
-    <span th:text="${workout != null ? workout.name : 'Rest'}"></span>
-    
+    <th:block th:if="${programDay != null}">
+        <span th:text="|Workout day ${programDay.dayOrder + 1}|"></span>
+        <span th:text="${workout != null ? workout.name : 'Rest'}"></span>
+        <form method="post" th:action="@{/workoutSession}">            
+            <button type="submit">Start</button>
+        </form>
+    </th:block>
+    <p th:unless="${programDay != null}">No active program. <a href="/programs">Pick one</a></p>
+
 </body>
 
 </html>

@@ -1,6 +1,7 @@
 package com.github.stmo8555.gymtracker.workoutsession;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -33,11 +34,10 @@ public class WorkoutSessionSet {
     @Column(nullable = false)
     private String exerciseName;
 
-    // 1-based, as shown to the user ("set 1, set 2, ...")
+    // 0-based like every other position; templates show setNumber + 1 ("set 1, set 2, ...")
     @Column(nullable = false)
     private Integer setNumber;
 
-    @Column(nullable = false)
     private Integer reps;
 
     // BigDecimal, not double, so 82.5 kg stays exactly 82.5; null for bodyweight sets
@@ -46,6 +46,9 @@ public class WorkoutSessionSet {
 
     @Column(nullable = true)
     private String note;
+
+    @Column(nullable = true)
+    private Instant finishedAt;
 
     protected WorkoutSessionSet() {} // JPA needs a no-arg constructor
 

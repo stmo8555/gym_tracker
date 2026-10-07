@@ -1,8 +1,10 @@
 package com.github.stmo8555.gymtracker.workout;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.github.stmo8555.gymtracker.exercise.*;
 import com.github.stmo8555.gymtracker.programday.ProgramDay;
@@ -41,7 +43,7 @@ public class WorkoutController {
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Integer id, Model model) {
         model.addAttribute("workout", repo.findById(id).orElseThrow());
-        model.addAttribute("exercises", exerciseRepo.findByWorkoutId(id));
+        model.addAttribute("exercises", exerciseRepo.findByWorkoutIdOrderByPositionAsc(id));
         // programs using this workout, for the "used in" links. distinct() is safe
         // on entities here: within one persistence context each program id maps
         // to a single instance.
@@ -57,7 +59,10 @@ public class WorkoutController {
             @RequestParam Integer repRangeUpper, @RequestParam Integer sets,
             @RequestParam(defaultValue = "0") Integer restSeconds, @RequestParam(required = false) String note) {
         Workout workout = repo.getReferenceById(id);
-        exerciseRepo.save(new Exercise(name, repRangeLower, repRangeUpper, sets, restSeconds, note, workout));
+        int position = exerciseRepo.findFirstByWorkoutIdOrderByPositionDesc(id)
+                .map(last -> last.getPosition() + 1)
+                .orElse(0);
+        exerciseRepo.save(new Exercise(name, repRangeLower, repRangeUpper, sets, restSeconds, note, position, workout));
         return "redirect:/workouts/" + id + "/edit";
     }
 
@@ -101,6 +106,12 @@ public class WorkoutController {
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Integer id) {
+        // program_days.workout_id is ON DELETE RESTRICT; fail with a clear status
+        // instead of a constraint violation
+        if (!programDayRepo.findByWorkoutId(id).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Workout is used in a program; remove it from the program first");
+        }
         repo.deleteById(id);
         return "redirect:/workouts";
     }

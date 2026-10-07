@@ -81,7 +81,7 @@ public class ProgramController {
         programDayRepository.delete(findProgramDay(pid, id));
         programDayRepository.flush();
 
-        var programDays = programDayRepository.findByProgramIdOrderByDayOrderAsc(mockUser.get().getId());
+        var programDays = programDayRepository.findByProgramIdOrderByDayOrderAsc(pid);
         for (int i = 0; i < programDays.size(); i++) {
             programDays.get(i).setDayOrder(i);
         }
