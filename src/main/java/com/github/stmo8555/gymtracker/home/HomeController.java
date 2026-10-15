@@ -5,6 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import com.github.stmo8555.gymtracker.user.MockUserProvider;
+import com.github.stmo8555.gymtracker.workoutsession.WorkoutSessionRepository;
 import com.github.stmo8555.gymtracker.program.ProgramRepository;
 import com.github.stmo8555.gymtracker.programday.*;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,12 +17,14 @@ public class HomeController {
     private final ProgramRepository programRepository;
     private final ProgramDayRepository programDayRepository;
     private final MockUserProvider mockUserProvider;
+	private final WorkoutSessionRepository workoutSessionRepository;
 
     public HomeController(ProgramDayRepository programDayRepository, MockUserProvider mockUserProvider,
-            ProgramRepository programRepository) {
+            ProgramRepository programRepository, WorkoutSessionRepository workoutSessionRepository) {
         this.programRepository = programRepository;
         this.programDayRepository = programDayRepository;
         this.mockUserProvider = mockUserProvider;
+		this.workoutSessionRepository = workoutSessionRepository;
     }
 
     // todo make this more idiomatic
@@ -33,6 +36,8 @@ public class HomeController {
         var workout = programDay.map(pd -> pd.getWorkout()).orElse(null);
         model.addAttribute("workout", workout);
         model.addAttribute("programDay", programDay.orElse(null));
+        var workoutSession = workoutSessionRepository.findByUserIdAndFinishedAtIsNull(mockUserProvider.get().getId()).orElse(null);
+        model.addAttribute("workoutSession", workoutSession);
         return "home";
     }
 

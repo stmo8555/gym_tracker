@@ -19,10 +19,13 @@ public class ProgramController {
     private final ProgramRepository repo;
     private final ProgramDayRepository programDayRepository;
     private final MockUserProvider mockUser;
+    private final ProgramService programService;
 
     public ProgramController(ProgramRepository repo, MockUserProvider mockUser,
-            ProgramDayRepository programDayRepository, WorkoutRepository workoutRepository) {
+            ProgramDayRepository programDayRepository, WorkoutRepository workoutRepository,
+            ProgramService programService) {
         this.repo = repo;
+        this.programService = programService;
         this.programDayRepository = programDayRepository;
         this.mockUser = mockUser;
         this.workoutRepository = workoutRepository;
@@ -116,6 +119,14 @@ public class ProgramController {
 
         program.setActive(true);
         return "redirect:/programs";
+    }
+
+    // rest day: advance to the next day without starting a workout session
+    @Transactional
+    @PostMapping("/{id}/skip")
+    public String skip(@PathVariable Integer id) {
+        programService.advanceDay(findOwnedProgram(id));
+        return "redirect:/";
     }
 
     @Transactional

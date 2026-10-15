@@ -9,11 +9,26 @@
 
     <h2>Todays workout:</h2>
     <th:block th:if="${programDay != null}">
+        <span>Week [[${programDay.program.rotationPos + 1}]]</span>
         <span th:text="|Workout day ${programDay.dayOrder + 1}|"></span>
         <span th:text="${workout != null ? workout.name : 'Rest'}"></span>
-        <form method="post" th:action="@{/workoutSession}">            
-            <button type="submit">Start</button>
-        </form>
+        <th:block th:if="${workoutSession == null}">
+            <form th:if="${workout != null}" method="post" th:action="@{/workoutSession}">
+                <button type="submit">Start</button>
+            </form>
+            <form method="post" th:action="@{/programs/{id}/skip(id=${programDay.program.id})}">
+                <button type="submit">Skip</button>
+            </form>
+        </th:block>
+        <th:block th:if="${workoutSession != null}">
+            <form method="get" th:action="@{/workoutSession}">
+                <button type="submit">Continue</button>
+            </form>
+            <form method="post" th:action="@{/workoutSession/{id}/stop(id=${workoutSession.id})}">
+                <button type="submit">Stop</button>
+            </form>
+        </th:block>
+
     </th:block>
     <p th:unless="${programDay != null}">No active program. <a href="/programs">Pick one</a></p>
 
